@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "es6",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "baseUrl": "./src",
+        "paths": {
+            "Config/*": [
+                "../config/*"
+            ],
+            "Client/*": [
+                "client/*"
+            ],
+            "Server/*": [
+                "server/*"
+            ],
+            "Api/*": [
+                "api/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
