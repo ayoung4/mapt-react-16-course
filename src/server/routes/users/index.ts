@@ -51,7 +51,8 @@ const register =
         crypt.genHash(password)
             .chain(insertUser(email, name))
 
-const registerIfNotUser: (email: string, name: string, password: string) => (user: IUser) => Future.FutureInstance<{}, Maybe<IUser>> =
+const registerIfNotUser:
+    (email: string, name: string, password: string) => (user: IUser) => Future.FutureInstance<{}, Maybe<IUser>> =
     (email, name, password) =>
         (user) => user
             ? Future.resolve(Maybe.None())
@@ -73,15 +74,19 @@ export const Register = Webpart.ofFuture(({ req, res }) =>
                     : res.status(400).json({ email: 'email already exists' }),
     ));
 
-const loginIfUser =
-    (password: string) =>
+const loginIfUser:
+    (password: string) => (user: IUser) => Future.FutureInstance<{}, Either<any, any>> =
+    (password) =>
         (user) =>
             !user
                 ? Future.resolve(Either.Left({ email: 'email not found' }))
                 : crypt.compare(password, user.password)
-                    .map((matches) => !matches
-                        ? Either.Left({ password: 'incorrect password' })
-                        : Either.Right(user)
+                    .chain((matches) => !matches
+                        ? Future.resolve(Either.Left({ password: 'incorrect password' }))
+                        : auth.createToken(user._id).bimap(
+                            () => Either.Left({ message: 'failed to create token' }),
+                            (token) => Either.Right({ token }),
+                        )
                     );
 
 export const Login = Webpart.ofFuture(({ req, res }) =>

@@ -8,17 +8,17 @@ interface IAppSettings {
 
 const settings: IAppSettings = require('Config/keys.js');
 
-export const sign =
-    (id: string, name: string, avatar: string) =>
-        Future.Future(
+export const createToken =
+    (id: string) =>
+        Future.Future<{}, string>(
             (reject, resolve) =>
                 jwt.sign(
-                    { id, name, avatar },
+                    { id },
                     settings.apiSecret,
                     { expiresIn: 3600 },
                     (err, token) =>
                         err
                             ? reject(err)
-                            : resolve(token)
+                            : resolve(`Bearer ${token}`)
                 ),
         );

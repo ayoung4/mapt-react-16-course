@@ -3,7 +3,6 @@ import * as R from 'ramda';
 import { Either } from 'monet';
 import * as Future from 'fluture';
 
-
 export module Webpart {
 
     interface IRequest {
@@ -126,7 +125,7 @@ export module Webpart {
                         .bimap(
                             () => res.status(404).end(),
                             (future) => future.fork(
-                                () => res.status(500).end(),
+                                () => res.end(),
                                 () => res.end()
                             ),
                     ),
