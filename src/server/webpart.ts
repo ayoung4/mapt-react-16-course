@@ -11,125 +11,110 @@ export module Webpart {
         next: express.NextFunction;
     }
 
-    type WebResult = Either<Error | null, Future.FutureInstance<{}, IRequest | any>>
+    // either future either result
+    type WebComputation = Future.FutureInstance<any, any>;
+    type WebResult = Either<any, WebComputation | any>
 
     type Operation = (request: IRequest) => WebResult;
 
     export class Webpart {
-
         op: Operation;
-
         constructor(op: Operation) {
             this.op = op;
         }
-
-        run(request: IRequest): WebResult {
+        run(request: IRequest) {
             return this.op(request);
         }
-
-        map(fn: (t: IRequest) => IRequest): Webpart {
-            return new Webpart(
-                (request) =>
-                    this.op(request).map(
-                        (future) => future.map(
-                            (t) => fn(t)
-                        ),
-                    ),
-            );
-        }
-
         concat(wp: Webpart) {
             return new Webpart(
                 (request) =>
-                    this.op(request)
-                        .flatMap(
-                            () => wp.op(request)
+                    this.run(request)
+                        .bimap(
+                            () => reject(),
+                            (f) => f.chain(
+                                () => {
+                                    const res = wp.run(request);
+                                    return res.isRight()
+                                        ? res.right()
+                                        : Future.reject({});
+                                },
+                            )
                         )
-            )
+            );
         }
-
     }
 
-    export const of = (fn: (request: IRequest) => any) => new Webpart(R.compose(pure, fn));
+    export const reject =
+        () =>
+            Either.Left({});
 
-    export const ofFuture =
-        (fn: (request: IRequest) => Future.FutureInstance<any, any>) =>
+    export const accept =
+        (f: WebComputation) =>
+            Either.Right(f);
+
+    export const ok =
+        (x) =>
+            Either.Right(Future.resolve(x));
+
+    export const fail =
+        (err: Error) =>
+            Either.Right(Future.reject(err));
+
+    export const log =
+        (str: string) =>
+            new Webpart(
+                () => ok(console.log('DEBUG', str)),
+            );
+
+    export const match =
+        (wps: Webpart[]) =>
+            new Webpart((request) => {
+                const options = R.map(
+                    (wp) => wp.run(request),
+                    wps,
+                );
+                return R.find((wr) => wr.isRight(), options)
+                    || reject();
+            });
+
+    const method =
+        (m: string) =>
             new Webpart(
                 (request) =>
-                    Either.Right(fn(request))
+                    m === request.req.method
+                        ? ok(request)
+                        : reject()
             );
-
-    const fail: (err?: Error) => WebResult =
-        (err) => Either.Left(err || null);
-
-    const pure: (x) => WebResult =
-        (x) => Either.Right(Future.resolve(x));
-
-    const filter =
-        (predicate: (request: IRequest) => boolean) =>
-            new Webpart(
-                (request: IRequest) =>
-                    predicate(request)
-                        ? pure(request)
-                        : fail(),
-            );
-
-    export const path = (path: string) =>
-        filter(({ req }) => req.path === path);
-
-    const method = (method: string) =>
-        filter(({ req }) => req.method === method);
 
     export const GET = method('GET');
     export const POST = method('POST');
 
-    export const writeFuture =
-        (fn: (request: IRequest) => Future.FutureInstance<any, any>) =>
+    export const path =
+        (p: string) =>
             new Webpart(
                 (request) =>
-                    Either.Right(fn(request))
-            )
+                    p === request.req.path
+                        ? ok(request)
+                        : reject()
+            );
 
-    const writer =
-        (status: number) =>
-            (message: any) =>
-                new Webpart(
-                    ({ res }) =>
-                        pure(res.status(status).send(message))
-                );
-
-    export const OK = writer(200);
-    export const CREATED = writer(201);
-    export const NOT_FOUND = writer(404);
-
-    export const choose =
-        (parts: Webpart[]) =>
+    export const exec =
+        (fn: (request: IRequest) => WebComputation) =>
             new Webpart(
-                (request: IRequest) => {
-                    const options = R.map(
-                        (x) => x.run(request),
-                        parts,
-                    );
-                    const chosen = R.find((e) => e.isRight(), options);
-                    return chosen
-                        ? chosen
-                        : fail();
-                },
+                (request) => accept(fn(request))
             );
 
-    export const loadApp =
-        <T>(app: express.Application, wp: Webpart) =>
-            app.use(
-                (req, res, next) =>
-                    wp.run({ req, res, next })
-                        .bimap(
-                            () => res.status(404).end(),
-                            (future) => future.fork(
-                                () => res.end(),
-                                () => res.end()
-                            ),
-                    ),
-            );
-
+    export const load = (app: express.Application, wp: Webpart) =>
+        app.use((req, res, next) => {
+            console.log(req.method, req['path']);
+            wp.run({ req, res, next })
+                .bimap(
+                    () => res.status(404).end(),
+                    (f) => f.fork(
+                        () => res.end(),
+                        () => res.end(),
+                    )
+                );
+        });
 
 }

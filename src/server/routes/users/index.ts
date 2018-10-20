@@ -64,7 +64,7 @@ const checkAndRegister =
         findUserByEmail(email)
             .chain(registerIfNotUser(email, name, password))
 
-export const Register = Webpart.ofFuture(({ req, res }) =>
+export const Register = Webpart.exec(({ req, res }) =>
     checkAndRegister(req.body.email, req.body.name, req.body.password)
         .bimap(
             () => res.status(500).json({ message: 'internal server error' }),
@@ -89,7 +89,7 @@ const loginIfUser:
                         )
                     );
 
-export const Login = Webpart.ofFuture(({ req, res }) =>
+export const Login = Webpart.exec(({ req, res }) =>
     findUserByEmail(req.body.email)
         .chain(loginIfUser(req.body.password))
         .bimap(
