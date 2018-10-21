@@ -1,6 +1,6 @@
 import * as express from 'express';
 import * as R from 'ramda';
-import { Either } from 'monet';
+import { Either, Validation } from 'monet';
 import * as Future from 'fluture';
 
 export module Webpart {
@@ -57,7 +57,7 @@ export module Webpart {
             Either.Right(Future.resolve(x));
 
     export const fail =
-        (err: Error) =>
+        (err) =>
             Either.Right(Future.reject(err));
 
     export const log =
@@ -102,6 +102,16 @@ export module Webpart {
         (fn: (request: IRequest) => WebComputation) =>
             new Webpart(
                 (request) => accept(fn(request))
+            );
+
+    export const validate =
+        (fn: (body: object) => Validation<{}, {}>) =>
+            new Webpart(
+                ({ req, res }) => fn(req.body).isFail()
+                    ? fail(res.status(400).json({
+                        message: fn(req.body).fail()
+                    }))
+                    : ok(req.body)
             );
 
     export const load = (app: express.Application, wp: Webpart) =>
