@@ -3,7 +3,7 @@ import * as passport from 'passport';
 import * as Future from 'fluture';
 
 import { Webpart } from './webpart';
-import { User } from 'Server/models';
+import { User } from 'Server/api/users';
 
 interface IAppSettings {
     secretOrKey: string;
@@ -24,19 +24,29 @@ const jwtStrategy = new Strategy({
 
 export const pp = new passport.Passport().use(jwtStrategy);
 
-export const Authenticate = Webpart.exec(({ req, res, next }) =>
-    Future.Future(
-        (reject, resolve) => {
-            pp.authenticate(
-                'jwt',
-                { session: false },
-                (err, user) =>
-                    err
-                        ? reject(res.status(500))
-                        : !!user
-                            ? resolve(user)
-                            : reject(res.status(401)),
-            )(req, res, next);
-        },
-    ),
+export const authenticateRequest =
+    ({ req, res, next }: Webpart.IRequest) =>
+        Future.Future<{}, IUser>(
+            (reject, resolve) => {
+                pp.authenticate(
+                    'jwt',
+                    { session: false },
+                    (err, user) =>
+                        err
+                            ? reject(err)
+                            : resolve(user),
+                )(req, res, next);
+            },
+        );
+
+export const AuthPart = Webpart.exec(({ req, res, next }) =>
+    authenticateRequest({ req, res, next })
+        .chainRej(
+            () => Future.reject(res.status(500))
+        )
+        .chain((user) => !!user
+            ? Future.resolve(user)
+            : Future.reject(res.status(401).json({ message: 'unauthorized' })),
+        ),
 );
+

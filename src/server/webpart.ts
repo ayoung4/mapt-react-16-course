@@ -1,11 +1,12 @@
 import * as express from 'express';
 import * as R from 'ramda';
-import { Either, Validation } from 'monet';
+import { Either } from 'monet';
 import * as Future from 'fluture';
+import { Validation } from './validation'
 
 export module Webpart {
 
-    interface IRequest {
+    export interface IRequest {
         req: express.Request;
         res: express.Response;
         next: express.NextFunction;
@@ -105,13 +106,16 @@ export module Webpart {
             );
 
     export const validate =
-        (fn: (body: object) => Validation<{}, {}>) =>
+        <T>(v: Validation.Validation<T>) =>
             new Webpart(
-                ({ req, res }) => fn(req.body).isFail()
-                    ? fail(res.status(400).json({
-                        message: fn(req.body).fail()
-                    }))
-                    : ok(req.body)
+                ({ req, res }) => {
+                    const val = v.exec(req.body);
+                    return val.isLeft()
+                        ? fail(res.status(400).json({
+                            message: val.left(),
+                        }))
+                        : ok(req.body);
+                },
             );
 
     export const load = (app: express.Application, wp: Webpart) =>

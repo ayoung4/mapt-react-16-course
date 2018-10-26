@@ -1,34 +1,48 @@
+import { Either } from 'monet';
 
-import { Validation } from 'monet';
+export module Validation {
 
-import { Webpart } from './webpart';
+    export class Validation<T> {
+        pred: (data: T) => Either<string[], T>;
+        constructor(pred: (data: T) => Either<string[], T>) {
+            this.pred = pred;
+        }
+        exec(data: T) {
+            return this.pred(data);
+        }
+        concat<U>(v: Validation<U>) {
+            return new Validation<T & U>(
+                (data) => {
+                    const first = this.pred(data);
+                    const second = v.pred(data);
+                    return first
+                        .leftMap(
+                            (errs) => second.isLeft()
+                                ? errs.concat(second.left())
+                                : errs,
+                        )
+                        .chain(
+                            () => second.isLeft()
+                                ? Either.Left<string[], T & U>(second.left())
+                                : Either.Right<string[], T & U>(data as T & U),
+                    )
+                }
+            )
+        }
+    }
 
-const validatePassword = ({ password, ...rest }) =>
-    password.length < 7
-        ? Validation.fail('your password must consist of at least 7 characters')
-        : Validation.success({ password, ...rest });
+    export const empty = () =>
+        new Validation<{}>(
+            () => Either.Right({})
+        );
 
-const validateEmail = ({ email, ...rest }) =>
-    !/^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/.exec(email)
-        ? Validation.fail('your email must be valid')
-        : Validation.success({ email, ...rest });
+    export const of =
+        <T>(errStr: string, pred: (data: T) => boolean) =>
+            new Validation(
+                (data: T) =>
+                    pred(data)
+                        ? Either.Right<string[], T>(data)
+                        : Either.Left<string[], T>([errStr])
+            );
 
-const validateName = ({ name, ...rest }) =>
-    !/^[a-z ,.'-]+$/.exec(name)
-        ? Validation.fail('your name must be valid')
-        : Validation.success({ name, ...rest });
-
-export const validateLogin = Webpart.validate(
-    (body) =>
-        Validation.of(body)
-            .chain(validatePassword)
-            .chain(validateEmail),
-);
-
-export const validateRegister = Webpart.validate(
-    (body) =>
-        Validation.of(body)
-            .chain(validatePassword)
-            .chain(validateEmail)
-            .chain(validateName),
-);
+}

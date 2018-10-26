@@ -1,52 +1,7 @@
 import * as mongoose from 'mongoose';
 
-export const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
-    avatar: { type: String, required: true },
-    created: { type: Date, default: Date.now },
-});
-
-interface IUser extends mongoose.Document {
-    name: string;
-    password: string;
-    email: string;
-    increment: any;
-    model: any;
-}
-
-export const User = mongoose.model<IUser>('users', UserSchema);
-
-interface IProfile extends mongoose.Document {
-    user: string;
-    company?: string;
-    website?: string;
-    location?: string;
-    status?: string;
-    skills: string[];
-    bio?: string;
-    githubUsername?: string;
-    experience: Array<{
-        title: string;
-        company: string;
-        location?: string;
-        from: Date;
-        to?: Date;
-        description?: string;
-    }>;
-    education: Array<{
-        school: string;
-        degree: string;
-        field: string;
-        from: Date;
-        to?: Date;
-        description?: string;
-    }>;
-}
-
 export const ProfileSchema = new mongoose.Schema({
-    user: {
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
         required: true,
@@ -147,4 +102,4 @@ export const ProfileSchema = new mongoose.Schema({
     }
 });
 
-export const Profile = mongoose.model<IProfile>('profiles', ProfileSchema);
+export const Profile = mongoose.model<IProfile & mongoose.Document>('profiles', ProfileSchema);
