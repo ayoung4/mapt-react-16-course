@@ -3,7 +3,7 @@ var nodeExternals = require('webpack-node-externals');
 var awt = require('awesome-typescript-loader');
 
 var typescriptLoader = {
-    test: /\.ts?$/,
+    test: /\.tsx?$/,
     loader: 'awesome-typescript-loader'
 };
 
@@ -29,11 +29,11 @@ module.exports = [
         }
     },
     {
-        entry: './src/client/index.ts',
+        entry: './src/client/index.tsx',
         target: 'web',
         node: { fs: 'empty' },
         resolve: {
-            extensions: ['.ts', '.js'],
+            extensions: ['.ts', '.tsx', '.js'],
             modules: ['node_modules'],
             plugins: [new awt.TsConfigPathsPlugin()],
         },

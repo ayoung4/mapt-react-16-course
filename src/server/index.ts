@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 import * as bodyParser from 'body-parser';
+import * as path from 'path';
 
 import { Webpart } from './webpart';
 
@@ -25,6 +26,7 @@ mongoose
     .catch(console.warn)
     .then(() => console.log('mongo connected'));
 
+server.use(express.static(__dirname + '/public/'));
 server.use(pp.initialize());
 
 server.use(bodyParser.urlencoded({ extended: true }));
@@ -34,6 +36,10 @@ const app = Webpart.match([
     UsersApi,
 ]);
 
+// server.get('*', (req, res) => {
+//     console.log('getting index');
+// })
+
 Webpart.load(server, app);
 
-server.listen(PORT, () => console.log(`listening on ${3000}`));
+server.listen(PORT, () => console.log(`api listening on ${PORT}`));
