@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "es6",
+        "jsx": "react",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "baseUrl": "./src",
+        "paths": {
+            "Config/*": [
+                "../config/*"
+            ]
+        }
+    },
+    "include": [
+        "src",
+    ]
+}
