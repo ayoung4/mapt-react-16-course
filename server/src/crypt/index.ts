@@ -28,7 +28,8 @@ export const hash =
 
 export const genHash =
     (password: string) =>
-        genSalt().chain(hash(password))
+        genSalt()
+            .chain(hash(password))
 
 export const compare =
     R.curry(

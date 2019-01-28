@@ -120,7 +120,7 @@ export module Webpart {
 
     export const load = (app: express.Application, wp: Webpart) =>
         app.use((req, res, next) => {
-            console.log(req.method, req['path']);
+            console.log(req.method, req['path'], req.body);
             wp.run({ req, res, next })
                 .bimap(
                     () => res.status(404).end(),

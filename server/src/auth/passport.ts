@@ -42,7 +42,11 @@ export const AuthPart = Webpart.exec(({ req, res, next }) =>
         )
         .chain((user) => !!user
             ? Future.resolve(user)
-            : Future.reject(res.status(401).json({ message: 'unauthorized' })),
+            : Future.reject(
+                res
+                    .status(401)
+                    .json({ message: 'unauthorized' }),
+            ),
         ),
 );
 

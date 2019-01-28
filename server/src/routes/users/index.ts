@@ -5,17 +5,23 @@ import { Register, validateRegister } from './register';
 import { Login, validateLogin } from './login';
 import { CurrentUser } from './current';
 
+import { ROUTES } from './constants';
+
 export const UsersApi = Webpart.match([
-    Webpart.path('/api/users/register')
+
+    Webpart.path(ROUTES.register)
         .concat(Webpart.POST)
         .concat(validateRegister)
         .concat(Register),
-    Webpart.path('/api/users/login')
+
+    Webpart.path(ROUTES.login)
         .concat(Webpart.POST)
         .concat(validateLogin)
         .concat(Login),
-    Webpart.path('/api/users/current')
+
+    Webpart.path(ROUTES.current)
         .concat(Webpart.GET)
         .concat(AuthPart)
         .concat(CurrentUser),
+
 ]);

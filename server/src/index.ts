@@ -20,19 +20,16 @@ mongoose
     .catch(console.warn)
     .then(() => console.log('mongo connected'));
 
-server.use(express.static(__dirname + '/public/'));
+server.use(express.static(`${__dirname}/public/`));
 server.use(pp.initialize());
 
-server.use(bodyParser.urlencoded({ extended: true }));
+server.use(bodyParser.urlencoded({ extended: false }));
+server.use(bodyParser.json());
 
 const app = Webpart.match([
     ProfilesApi,
     UsersApi,
 ]);
-
-// server.get('*', (req, res) => {
-//     console.log('getting index');
-// })
 
 Webpart.load(server, app);
 
