@@ -1,32 +1,24 @@
 import * as React from 'react';
-import { Container, Grid, Menu, Segment, Header, List, Message, Image } from 'semantic-ui-react';
-import { Box } from 'react-layout-components';
+import { Container, Grid, Menu, Segment, Header, List, Image } from 'semantic-ui-react';
+import { Box, Page } from 'react-layout-components';
 import logo from '../logo.svg';
 
 export const LandingPage = () => (
-    <div id="Landing-Page">
+    <Page>
         <Box fit row>
             <Menu size='huge' inverted>
                 <Container>
-                    <Menu.Item>
-                        Mapt React 16 Course
-                </Menu.Item>
+                    <Menu.Item>Mapt React 16 Course</Menu.Item>
                     <Menu.Menu position='right'>
-                        <Menu.Item>
-                            Log In
-                </Menu.Item>
-                        <Menu.Item>
-                            Sign Up
-                </Menu.Item>
+                        <Menu.Item>Log In</Menu.Item>
+                        <Menu.Item>Sign Up</Menu.Item>
                     </Menu.Menu>
                 </Container>
             </Menu>
             <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle'>
                 <Grid.Column style={{ maxWidth: 450 }}>
                     <Image src={logo} />
-                    <Header as='h2' textAlign='center'>
-                        Semantic UI React App
-                </Header>
+                    <Header as='h2' textAlign='center'>Semantic UI React App</Header>
                 </Grid.Column>
             </Grid>
             <Segment inverted vertical style={{ padding: '5em 0em' }}>
@@ -57,12 +49,12 @@ export const LandingPage = () => (
                             </Header>
                                 <p>
                                     Extra space for a call to action inside the footer that could help re-engage users.
-                            </p>
+                                </p>
                             </Grid.Column>
                         </Grid.Row>
                     </Grid>
                 </Container>
             </Segment>
         </Box>
-    </div>
+    </Page>
 );
